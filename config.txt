@@ -1,0 +1,13 @@
+User Name:ADMIN
+New Password:
+COM Port:COM7
+Baud Rate:9600
+Customer:Intel
+IP:192.168.100.207
+TFTP:192.168.100.1
+Bootloader Name:MBM-XEM-002_boot-1.0.15.bin
+Firmware Name:MBM-XEM-002_v2.1.2-4_IN001.img
+
+*****Commands Start From Here*****
+
+
