@@ -46,18 +46,26 @@ def OpenCommand():
     print("COM Port Opened\r\n")
 
 def login(username, passwd):
+    serialPort.Send("")
+    time.sleep(0.5)
+    data = serialPort.serialport.readline().decode("utf-8", errors='ignore')
+    while 'login:' not in data:
+        print(data)
+        data = serialPort.serialport.readline().decode("utf-8", errors='ignore')
+    print(data)
+    time.sleep(2.0)
     serialPort.Send(username)
-    OnReceiveSerialData()
+    time.sleep(0.5)
+    data = serialPort.serialport.readline().decode("utf-8", errors='ignore')
+    print(data)
     serialPort.Send(passwd)
     time.sleep(1.0)
-    message = serialPort.serialport.read(serialPort.serialport.inWaiting())
-    try:
-        data = message.decode("utf-8", errors='ignore')
-        if "SMIS#" not in data:
-            print("Failed to login with the password \"" + passwd + "\"\n Leave scrip!!!")
-            sys.exit()
-    except:
-        pass
+    data = serialPort.serialport.read(serialPort.serialport.in_waiting).decode("utf-8", errors='ignore')
+    print(data)
+    if "SMIS#" not in data:
+        print("Failed to login with the password \"" + passwd + "\"\n Leave scrip!!!")
+        serialPort.Close()
+        sys.exit()
     #data = serialPort.serialport.read(serialPort.serialport.inWaiting())
     #print(data)
 
@@ -68,14 +76,14 @@ def logout():
 
 def writeCommand(command):
     serialPort.Send(command)
-    time.sleep(1.0)
+    time.sleep(0.5)
 
 def SetNetwork(IP, TFTP):
     serialPort.Send_raw('q')
     OnReceiveSerialData()
     backspace = bytearray([8 for i in range(20)])
     serialPort.serialport.write(backspace)
-    time.sleep(1.0)
+    time.sleep(0.5)
     OnReceiveSerialData()
     serialPort.Send(IP)
     OnReceiveSerialData()
@@ -84,7 +92,7 @@ def SetNetwork(IP, TFTP):
     serialPort.Send("")
     OnReceiveSerialData()
     serialPort.serialport.write(backspace)
-    time.sleep(1.0)
+    time.sleep(0.5)
     serialPort.Send(TFTP)
     OnReceiveSerialData()
     serialPort.Send("y")
@@ -147,7 +155,7 @@ if serialPort.IsOpen():
                 backspace = bytearray([8 for i in range(50)])
                 OnReceiveSerialData()
                 serialPort.serialport.write(backspace)
-                time.sleep(2.0)
+                time.sleep(1.0)
                 OnReceiveSerialData()
                 serialPort.Send(bootloader)
                 OnReceiveSerialData()
@@ -157,7 +165,7 @@ if serialPort.IsOpen():
                 serialPort.Send_raw('p')
                 OnReceiveSerialData()
                 serialPort.serialport.write(backspace)
-                time.sleep(2.0)
+                time.sleep(1.0)
                 OnReceiveSerialData()
                 serialPort.Send(firmware)
                 OnReceiveSerialData()
@@ -188,18 +196,18 @@ if serialPort.IsOpen():
 
                 if fail:
                     print("Failed to flash bootloader!! Leave script!")
+                    serialPort.Close()
                     sys.exit()
                 print("Updating Firmware ...")
 
                 fail = True
                 serialPort.Send_raw('l')
                 while True:
-                    time.sleep(3.0)
+                    time.sleep(2.0)
                     message = serialPort.serialport.read(serialPort.serialport.in_waiting)
                     try:
                         message = message.decode("utf-8", errors='ignore')
-
-                        print('.', end ="", flush=True)
+                        print('.', end='', flush=True)
                         #print(message)
                         if "FW PROGRAM NORMAL SUCCEEDED" in message:
                             fail = False
@@ -222,7 +230,7 @@ if serialPort.IsOpen():
                 serialPort.Send_raw('u')
                 OnReceiveSerialData()
                 serialPort.Send("@")
-                time.sleep(3.0)
+                time.sleep(2.0)
                 while serialPort.serialport.in_waiting > 0:
                     message =serialPort.serialport.read(serialPort.serialport.in_waiting).decode("utf-8", errors='ignore')
                     print(message)
@@ -235,29 +243,19 @@ if serialPort.IsOpen():
                 set_password = "sys_eeprom set 0x2f " + new_passwd
                 serialPort.Send(set_password)
                 OnReceiveSerialData()
-                time.sleep(1.0)
+                time.sleep(0.5)
                 serialPort.Send("sys_eeprom")
                 OnReceiveSerialData()
-                time.sleep(1.0)
+                time.sleep(2.0)
                 serialPort.Send("sys_eeprom write")
-                time.sleep(1.0)
+                time.sleep(0.5)
                 #serialPort.serialport.write("bootmenu\r".encode("utf-8"))
                 #OnReceiveSerialData()
-                OnReceiveSerialData()
-                message = serialPort.serialport.read(serialPort.serialport.in_waiting).decode("utf-8", errors='ignore')
-                while "SMIS login:" not in message:
-                    message =serialPort.serialport.read(serialPort.serialport.in_waiting)
-                    try:
-                        message = message.decode("utf-8", errors='ignore')
-
-                        print(message)
-                    except:
-                        message = ''
-                        pass
-                    time.sleep(3.0)
-                #serialPort.Send("")
-                #OnReceiveSerialData()
-
+                #message = serialPort.serialport.read(serialPort.serialport.in_waiting).decode("utf-8", errors='ignore')
+                message = serialPort.serialport.readline().decode("utf-8", errors='ignore')
+                while " Supermicro Switch" not in message:
+                    print(message)
+                    message =serialPort.serialport.readline().decode("utf-8", errors='ignore')
                 login(username, new_passwd)
                 new_passwd = ''
                 f = open(config_file, 'r')
@@ -271,14 +269,14 @@ if serialPort.IsOpen():
                         f.write(comm)
                 f.close()
                 serialPort.Send("show system information")
-                time.sleep(2.0)
+                time.sleep(0.5)
                 serial_number = ''
                 while serialPort.serialport.in_waiting > 0:
                     strs = serialPort.serialport.read(serialPort.serialport.in_waiting).decode("utf-8", errors='ignore')
                     m = re.findall(r"Switch\s+Serial\s+Number\s+\:\s?(\w+)", strs)
                     if m:
                         serial_number = m[0]
-                    time.sleep(2.0)
+                    time.sleep(1.0)
                 serialPort.Send_raw('q')
                 OnReceiveSerialData()
                 serialPort.Send("show version")
