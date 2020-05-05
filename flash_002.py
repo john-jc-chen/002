@@ -99,12 +99,19 @@ def SetNetwork(IP, TFTP):
     OnReceiveSerialData()
 
 def write_log(serial_number, message):
-    log_dir = os.getcwd() + "\\log"
+    if os.name == 'posix':
+        log_dir = os.getcwd() + '/log'
+    else:
+        log_dir = os.getcwd() + "\\log"
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
-    with open(log_dir + "\\" + serial_number + ".log","w") as of:
-        of.write(time.strftime("%m-%d-%Y %H:%M", time.gmtime()) + "\n")
-        of.write(message)
+    serial= '123'
+    if os.name == 'posix':
+        file_name =log_dir + '/' + serial_number
+    else:
+        file_name =log_dir + "\\" + serial_number
+    logging.basicConfig(filename=file_name,level=logging.INFO, format='%(asctime)s - %(message)s', datefmt = '%d-%b-%y %H-%M-%S')
+    logging.info(message)
 
 OpenCommand()
 if serialPort.IsOpen():
