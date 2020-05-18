@@ -1,9 +1,10 @@
 import serial_rx_tx
 import time
 import sys
-import time
 import re
 import os
+#import logging
+from datetime import datetime
 
 import _thread
 
@@ -105,13 +106,18 @@ def write_log(serial_number, message):
         log_dir = os.getcwd() + "\\log"
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
-    serial= '123'
+
     if os.name == 'posix':
         file_name =log_dir + '/' + serial_number
     else:
         file_name =log_dir + "\\" + serial_number
-    logging.basicConfig(filename=file_name,level=logging.INFO, format='%(asctime)s - %(message)s', datefmt = '%d-%b-%y %H-%M-%S')
-    logging.info(message)
+    # logging.basicConfig(filename=file_name,level=logging.INFO, format='%(asctime)s - %(message)s', datefmt = '%d-%b-%y %H-%M-%S')
+    # logging.info(message)
+    # logging.shutdown()
+    with open(file_name, 'w') as f:
+        f.write("{}\n {}\n".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), message))
+
+
 
 OpenCommand()
 if serialPort.IsOpen():
@@ -139,7 +145,8 @@ if serialPort.IsOpen():
                     elif comm.startswith("TFTP:"):
                         TFTP = comm[5:].rstrip()
                     elif comm.startswith("Bootloader Name:"):
-                        bootloader = comm[16:].rstrip()
+                        strarry = comm.rstrip().split(':')
+                        bootloader = strarry[1]
                     elif comm.startswith("Firmware Name:"):
                         firmware = comm[14:].rstrip()
                     elif comm.startswith("Customer:"):
@@ -148,6 +155,7 @@ if serialPort.IsOpen():
                         pass
                     i += 1
                 f.close()
+
                 if new_passwd == '':
                     print("ERROR!! Please write unique password in the configuration file!\n Leave script!!!")
                     serialPort.Close()
