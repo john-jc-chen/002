@@ -26,10 +26,10 @@ class SerialPort:
 
     def __del__(self):
         try:
-            if self.serialport.is_open():
+            if self.IsOpen():
                 self.serialport.close()
         except:
-            print("Destructor error closing COM port: ", sys.exc_info()[0] )
+            print("Destructor error closing COM port: ", sys.exc_info()[1] )
 
     """
     def RegisterReceiveCallback(self,aReceiveCallback):
